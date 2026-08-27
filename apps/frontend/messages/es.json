@@ -983,6 +983,14 @@
     "title": "Seguimiento de candidaturas",
     "subtitle": "Controla en qué punto está cada currículum adaptado de tu proceso.",
     "addApplication": "Añadir candidatura",
+    "manage": {
+      "button": "Gestionar",
+      "title": "Gestionar etapas",
+      "description": "Elige qué etapas aparecen en este tablero. Las etapas ocultas conservan sus candidaturas.",
+      "done": "Listo",
+      "allHiddenTitle": "Todas las etapas están ocultas",
+      "allHiddenDescription": "Usa Gestionar para mostrar una o más etapas."
+    },
     "columns": {
       "saved": "Guardado",
       "applied": "Enviado",

@@ -983,6 +983,14 @@
     "title": "Application Tracker",
     "subtitle": "Track where each tailored resume stands in your pipeline.",
     "addApplication": "Add Application",
+    "manage": {
+      "button": "Manage",
+      "title": "Manage stages",
+      "description": "Choose which stages appear on this board. Hidden stages keep their applications.",
+      "done": "Done",
+      "allHiddenTitle": "All stages are hidden",
+      "allHiddenDescription": "Use Manage to show one or more stages."
+    },
     "columns": {
       "saved": "Saved",
       "applied": "Applied",
