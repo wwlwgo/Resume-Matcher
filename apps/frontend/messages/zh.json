@@ -983,6 +983,14 @@
     "title": "申请追踪",
     "subtitle": "追踪每份定制简历在求职流程中的进展。",
     "addApplication": "添加申请",
+    "manage": {
+      "button": "管理",
+      "title": "管理状态模块",
+      "description": "选择要在此看板显示的状态模块。隐藏状态会保留其中的申请记录。",
+      "done": "完成",
+      "allHiddenTitle": "所有状态模块均已隐藏",
+      "allHiddenDescription": "使用“管理”显示一个或多个状态模块。"
+    },
     "columns": {
       "saved": "已保存",
       "applied": "已投递",

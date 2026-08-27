@@ -983,6 +983,14 @@
     "title": "지원 현황 트래커",
     "subtitle": "각 맞춤화된 이력서가 지원 파이프라인에서 어느 단계에 있는지 추적하세요.",
     "addApplication": "지원 추가",
+    "manage": {
+      "button": "관리",
+      "title": "단계 관리",
+      "description": "이 보드에 표시할 단계를 선택하세요. 숨긴 단계의 지원 기록은 유지됩니다.",
+      "done": "완료",
+      "allHiddenTitle": "모든 단계가 숨겨져 있습니다",
+      "allHiddenDescription": "관리에서 하나 이상의 단계를 표시하세요."
+    },
     "columns": {
       "saved": "저장됨",
       "applied": "지원 완료",
