@@ -242,12 +242,19 @@ def _openai_compatible_supports_json_mode(config: LLMConfig) -> bool:
     Custom OpenAI-compatible servers have no uniform capability-discovery API.
     Sending ``response_format`` to every one of them can turn a prompt-only
     JSON request that previously worked into a 400. Keep this allowlist limited
-    to endpoints that have been verified to support OpenAI JSON mode.
+    to endpoints that have been verified to support OpenAI JSON mode. StepFun's
+    regular Chat Completions API supports ``json_object``, but its Step Plan
+    reasoning route does not. Both routes share the same hostname, so the path
+    is part of the capability check.
     """
     if config.provider != "openai_compatible" or not isinstance(config.api_base, str):
         return False
-    host = (urlsplit(config.api_base.strip()).hostname or "").lower()
-    return _uses_opencode_zen_hy3(config) or host == "api.stepfun.com"
+    parsed = urlsplit(config.api_base.strip())
+    host = (parsed.hostname or "").lower()
+    step_plan_route = parsed.path.rstrip("/").startswith("/step_plan")
+    return _uses_opencode_zen_hy3(config) or (
+        host == "api.stepfun.com" and not step_plan_route
+    )
 
 
 def _extract_text_parts(

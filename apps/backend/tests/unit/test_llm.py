@@ -147,6 +147,23 @@ class TestProviderConfiguration:
         assert _uses_opencode_zen_hy3(config)
         assert _openai_compatible_supports_json_mode(config)
 
+    def test_stepfun_chat_supports_json_mode_but_step_plan_does_not(self):
+        chat_config = LLMConfig(
+            provider="openai_compatible",
+            model="step-3.7-flash",
+            api_key="",
+            api_base="https://api.stepfun.com/v1",
+        )
+        step_plan_config = LLMConfig(
+            provider="openai_compatible",
+            model="step-3.7-flash",
+            api_key="",
+            api_base="https://api.stepfun.com/step_plan/v1",
+        )
+
+        assert _openai_compatible_supports_json_mode(chat_config)
+        assert not _openai_compatible_supports_json_mode(step_plan_config)
+
     @patch("app.llm.litellm.get_model_info", side_effect=Exception("unknown model"))
     def test_unknown_models_keep_conservative_token_fallback(self, _mock_model_info):
         assert get_safe_max_tokens("openai/custom-model") == 4096
@@ -403,6 +420,35 @@ class TestAppearsTruncated:
 
 class TestCompleteJsonFallback:
     """Tests for JSON mode fallback in complete_json()."""
+
+    @pytest.mark.asyncio
+    @patch("app.llm.get_router")
+    @patch("app.llm.get_model_name")
+    @patch("app.llm._supports_json_mode")
+    async def test_stepfun_step_plan_uses_prompt_only_json(
+        self, mock_supports_json, mock_get_name, mock_get_router
+    ):
+        """Step Plan's reasoning endpoint must not receive response_format."""
+        mock_supports_json.return_value = False
+        mock_get_name.return_value = "openai/step-3.7-flash"
+        choice = MagicMock()
+        choice.message.content = '{"required_skills": ["Python"]}'
+        router = MagicMock()
+        router.acompletion = AsyncMock(return_value=MagicMock(choices=[choice]))
+        config = LLMConfig(
+            provider="openai_compatible",
+            model="step-3.7-flash",
+            api_key="",
+            api_base="https://api.stepfun.com/step_plan/v1",
+        )
+        mock_get_router.return_value = (router, config)
+
+        from app.llm import complete_json
+
+        result = await complete_json("Extract keywords", schema_type="keywords")
+
+        assert result == {"required_skills": ["Python"]}
+        assert "response_format" not in router.acompletion.call_args.kwargs
 
     @pytest.mark.asyncio
     @patch("app.llm.get_router")
