@@ -24,7 +24,7 @@ export function ApplicationCard({
   onToggleSelect,
   onOpen,
 }: ApplicationCardProps) {
-  const { t } = useTranslations();
+  const { t, locale } = useTranslations();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: application.application_id,
   });
@@ -37,6 +37,7 @@ export function ApplicationCard({
 
   const company = application.company?.trim();
   const role = application.role?.trim();
+  const interviewTime = formatInterviewTime(application.interview_at, locale);
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -71,6 +72,11 @@ export function ApplicationCard({
                 {new Date(application.applied_at).toLocaleDateString()}
               </p>
             )}
+            {application.status === 'interview' && interviewTime && (
+              <p className="mt-1 font-mono text-[10px] uppercase tracking-wide text-primary">
+                {t('tracker.card.interviewAt', { time: interviewTime })}
+              </p>
+            )}
             {sharedResume && (
               <span className="mt-1 inline-flex items-center gap-1 border border-black bg-paper-tint px-1 font-mono text-[10px] uppercase text-ink-soft">
                 <Layers className="h-3 w-3" />
@@ -92,4 +98,14 @@ export function ApplicationCard({
       </Card>
     </div>
   );
+}
+
+function formatInterviewTime(value: string | null, locale: string): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
 }

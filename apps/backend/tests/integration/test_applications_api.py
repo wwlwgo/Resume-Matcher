@@ -141,6 +141,63 @@ class TestUpdateAndMove:
         assert body["notes"] == "Recruiter call Friday"
         assert body["company"] == "NewCo"
 
+    async def test_patch_interview_time_persists_in_list_and_detail(self, isolated_db):
+        card = await _seed_card(isolated_db, status="interview")
+        interview_at = "2026-08-28T14:30:00+00:00"
+        async with _client() as client:
+            response = await client.patch(
+                f"/api/v1/applications/{card['application_id']}",
+                json={"interview_at": interview_at},
+            )
+            board = await client.get("/api/v1/applications")
+            detail = await client.get(f"/api/v1/applications/{card['application_id']}")
+
+        assert response.status_code == 200
+        assert response.json()["interview_at"] == "2026-08-28T14:30:00Z"
+        assert board.json()["columns"]["interview"][0]["interview_at"] == "2026-08-28T14:30:00Z"
+        assert detail.json()["interview_at"] == "2026-08-28T14:30:00Z"
+
+    async def test_patch_interview_time_can_be_cleared(self, isolated_db):
+        card = await _seed_card(
+            isolated_db,
+            status="interview",
+            interview_at="2026-08-28T14:30:00+00:00",
+        )
+        async with _client() as client:
+            response = await client.patch(
+                f"/api/v1/applications/{card['application_id']}",
+                json={"interview_at": None},
+            )
+
+        assert response.status_code == 200
+        assert response.json()["interview_at"] is None
+
+    async def test_patch_interview_time_rejects_non_interview_card(self, isolated_db):
+        card = await _seed_card(isolated_db, status="applied")
+        async with _client() as client:
+            response = await client.patch(
+                f"/api/v1/applications/{card['application_id']}",
+                json={"interview_at": "2026-08-28T14:30:00+00:00"},
+            )
+
+        assert response.status_code == 422
+
+    async def test_moving_card_out_of_interview_keeps_interview_time(self, isolated_db):
+        card = await _seed_card(
+            isolated_db,
+            status="interview",
+            interview_at="2026-08-28T14:30:00+00:00",
+        )
+        async with _client() as client:
+            response = await client.patch(
+                f"/api/v1/applications/{card['application_id']}",
+                json={"status": "accepted"},
+            )
+
+        assert response.status_code == 200
+        assert response.json()["status"] == "accepted"
+        assert response.json()["interview_at"] == "2026-08-28T14:30:00Z"
+
     async def test_patch_unknown_returns_404(self, isolated_db):
         async with _client() as client:
             resp = await client.patch("/api/v1/applications/nope", json={"notes": "x"})

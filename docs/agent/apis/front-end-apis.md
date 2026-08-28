@@ -66,7 +66,7 @@ The wizard is an AI-led, one-question-at-a-time flow that builds a general maste
 listApplications() → ApplicationListResponse        // { columns: Record<status, Application[]> }
 createApplication(payload: ManualApplicationCreate) → Application   // manual add from a pasted JD
 getApplicationDetail(id: string) → ApplicationDetail               // embedded JD + applied resume (resume null if deleted)
-updateApplication(id: string, payload: ApplicationUpdate) → Application   // status/position/notes/company/role/applied_at
+updateApplication(id: string, payload: ApplicationUpdate) → Application   // status/position/notes/company/role/applied_at/interview_at
 
 // Bulk
 bulkUpdateStatus(applicationIds: string[], status: ApplicationStatus) → ApplicationActionResponse
