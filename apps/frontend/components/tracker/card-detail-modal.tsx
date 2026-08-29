@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/lib/i18n';
@@ -36,8 +37,9 @@ export function CardDetailModal({
   const [detail, setDetail] = useState<ApplicationDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [notes, setNotes] = useState('');
-  const [savingNotes, setSavingNotes] = useState(false);
-  const [notesError, setNotesError] = useState<string | null>(null);
+  const [interviewAt, setInterviewAt] = useState('');
+  const [savingDetails, setSavingDetails] = useState(false);
+  const [detailsError, setDetailsError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !applicationId) {
@@ -51,7 +53,8 @@ export function CardDetailModal({
         if (cancelled) return;
         setDetail(data);
         setNotes(data.notes ?? '');
-        setNotesError(null);
+        setInterviewAt(toDateTimeLocal(data.interview_at));
+        setDetailsError(null);
       })
       .catch(() => {
         if (!cancelled) setDetail(null);
@@ -69,19 +72,27 @@ export function CardDetailModal({
     if (e.key === 'Enter') e.stopPropagation();
   };
 
-  const handleSaveNotes = async () => {
+  const handleSaveDetails = async () => {
     if (!applicationId) return;
-    setSavingNotes(true);
-    setNotesError(null);
+    setSavingDetails(true);
+    setDetailsError(null);
     try {
-      await updateApplication(applicationId, { notes });
+      const updated = await updateApplication(applicationId, {
+        notes,
+        ...(detail?.status === 'interview'
+          ? { interview_at: interviewAt ? new Date(interviewAt).toISOString() : null }
+          : {}),
+      });
+      setDetail((current) => (current ? { ...current, ...updated } : current));
+      setNotes(updated.notes ?? '');
+      setInterviewAt(toDateTimeLocal(updated.interview_at));
       onUpdated();
     } catch {
       // Show a generic message — never echo raw backend error text inline,
       // which could contain sensitive values.
-      setNotesError(t('common.error'));
+      setDetailsError(t('common.error'));
     } finally {
-      setSavingNotes(false);
+      setSavingDetails(false);
     }
   };
 
@@ -132,20 +143,31 @@ export function CardDetailModal({
                 placeholder={t('tracker.modal.notesPlaceholder')}
                 rows={3}
               />
+              {detail.status === 'interview' && (
+                <div className="space-y-1 pt-2">
+                  <Label htmlFor="card-interview-at">{t('tracker.modal.interviewTime')}</Label>
+                  <Input
+                    id="card-interview-at"
+                    type="datetime-local"
+                    value={interviewAt}
+                    onChange={(e) => setInterviewAt(e.target.value)}
+                  />
+                </div>
+              )}
               <div className="flex items-center justify-end gap-3">
-                {notesError && (
-                  <span className="font-mono text-xs text-destructive">{notesError}</span>
+                {detailsError && (
+                  <span className="font-mono text-xs text-destructive">{detailsError}</span>
                 )}
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={handleSaveNotes}
-                  disabled={savingNotes}
+                  onClick={handleSaveDetails}
+                  disabled={savingDetails}
                 >
-                  {savingNotes ? (
+                  {savingDetails ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    t('tracker.modal.saveNotes')
+                    t('tracker.modal.saveChanges')
                   )}
                 </Button>
               </div>
@@ -177,4 +199,14 @@ export function CardDetailModal({
       </DialogContent>
     </Dialog>
   );
+}
+
+function toDateTimeLocal(value: string | null): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (part: number) => String(part).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
+    date.getHours()
+  )}:${pad(date.getMinutes())}`;
 }

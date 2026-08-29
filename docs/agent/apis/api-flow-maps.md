@@ -136,7 +136,7 @@ GET /api/v1/applications/{id}
 
 | Endpoint | Flow |
 |----------|------|
-| `PATCH /applications/{id}` | db.update_application() — status/position/notes/company/role/applied_at; server renumbers `position` |
+| `PATCH /applications/{id}` | db.update_application() — status/position/notes/company/role/applied_at/interview_at; `interview_at` may only be set while the effective status is `interview`; server renumbers `position` |
 | `PATCH /applications/bulk` | db.bulk_update_status() — move many cards to one column |
 | `DELETE /applications/{id}` | db.delete_application() |
 | `POST /applications/bulk-delete` | db.bulk_delete_applications() |
