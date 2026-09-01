@@ -134,13 +134,16 @@ async def bulk_update_applications(request: BulkStatusUpdate) -> ApplicationActi
 
 @router.patch("/{application_id}", response_model=ApplicationResponse)
 async def update_application(application_id: str, request: ApplicationUpdate) -> ApplicationResponse:
-    """Update a card (status, details, and recorded interview questions)."""
-    updates = request.model_dump(exclude_unset=True)
+    """Update a card, including interview time and recorded questions."""
+    # JSON mode turns Pydantic datetimes into the ISO strings stored in SQLite.
+    updates = request.model_dump(exclude_unset=True, mode="json")
     # Normalize the enum to its stable string value for the data layer.
     if "status" in updates and updates["status"] is not None:
         updates["status"] = request.status.value
     try:
         updated = await db.update_application(application_id, updates)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:
         logger.error("Failed to update application %s: %s", application_id, e)
         raise HTTPException(status_code=500, detail="Failed to update application. Please try again.")

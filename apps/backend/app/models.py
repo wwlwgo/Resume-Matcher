@@ -116,6 +116,7 @@ class Application(Base):
     company: Mapped[str | None] = mapped_column(String, nullable=True)
     role: Mapped[str | None] = mapped_column(String, nullable=True)
     applied_at: Mapped[str | None] = mapped_column(String, nullable=True)
+    interview_at: Mapped[str | None] = mapped_column(String, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     # User-recorded questions asked during this application's interview process.
     # These intentionally belong to the application rather than a separate

@@ -94,14 +94,16 @@ class TestResumeCrud:
         finally:
             engine.dispose()
 
-    def test_interview_questions_migration_is_idempotent(self, tmp_path):
-        engine = make_sync_engine(tmp_path / "old_applications.db")
+    def test_application_interview_fields_migration_is_idempotent(self, tmp_path):
+        engine = make_sync_engine(tmp_path / "old.db")
         try:
             with engine.begin() as conn:
                 conn.exec_driver_sql(
                     """
                     CREATE TABLE applications (
-                        application_id TEXT PRIMARY KEY
+                        application_id TEXT PRIMARY KEY,
+                        job_id TEXT NOT NULL,
+                        resume_id TEXT NOT NULL
                     )
                     """
                 )
@@ -113,6 +115,7 @@ class TestResumeCrud:
                 columns = conn.exec_driver_sql("PRAGMA table_info(applications)").mappings().all()
             names = [column["name"] for column in columns]
             assert names.count("interview_questions") == 1
+            assert names.count("interview_at") == 1
         finally:
             engine.dispose()
 
@@ -260,6 +263,44 @@ class TestApplications:
         applied = await db.list_applications(status="applied")
         assert [x["application_id"] for x in applied] == [b["application_id"]]
         assert applied[0]["position"] == 0
+
+    async def test_interview_time_round_trips_and_survives_status_change(self, db):
+        a = await db.create_application(job_id="j1", resume_id="r1", status="interview")
+        interview_at = "2026-08-28T14:30:00+00:00"
+        updated = await db.update_application(a["application_id"], {"interview_at": interview_at})
+        assert updated["interview_at"] == interview_at
+
+        moved = await db.update_application(a["application_id"], {"status": "accepted"})
+        assert moved["status"] == "accepted"
+        assert moved["interview_at"] == interview_at
+
+    async def test_interview_time_persists_after_database_reopen(self, tmp_path):
+        db_path = tmp_path / "interview-time.db"
+        first = Database(db_path=db_path)
+        try:
+            created = await first.create_application(
+                job_id="j1",
+                resume_id="r1",
+                status="interview",
+                interview_at="2026-08-28T14:30:00+00:00",
+            )
+        finally:
+            await first.close()
+
+        reopened = Database(db_path=db_path)
+        try:
+            fetched = await reopened.get_application(created["application_id"])
+            assert fetched is not None
+            assert fetched["interview_at"] == "2026-08-28T14:30:00+00:00"
+        finally:
+            await reopened.close()
+
+    async def test_interview_time_rejects_non_interview_status(self, db):
+        a = await db.create_application(job_id="j1", resume_id="r1", status="applied")
+        with pytest.raises(ValueError, match="Interview time"):
+            await db.update_application(
+                a["application_id"], {"interview_at": "2026-08-28T14:30:00+00:00"}
+            )
 
     async def test_bulk_update_and_delete(self, db):
         a = await db.create_application(job_id="j1", resume_id="r1")

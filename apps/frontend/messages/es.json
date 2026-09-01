@@ -1009,6 +1009,7 @@
       "companyUnknown": "Empresa desconocida",
       "roleUnknown": "Puesto sin título",
       "sharedResume": "Currículum compartido",
+      "interviewAt": "Entrevista: {time}",
       "selectAria": "Seleccionar candidatura",
       "dragAria": "Arrastra para reordenar"
     },
@@ -1018,6 +1019,8 @@
       "notes": "Notas",
       "notesPlaceholder": "Añade notas sobre esta candidatura…",
       "saveNotes": "Guardar notas",
+      "interviewTime": "Hora de la entrevista",
+      "saveChanges": "Guardar cambios",
       "resumeUnavailable": "El currículum enviado ya no está disponible.",
       "loadFailed": "No se pudo cargar esta candidatura.",
       "editResume": "Editar currículum"
@@ -1051,6 +1054,7 @@
       "addLabel": "Pregunta de entrevista",
       "addPlaceholder": "Registra una pregunta que hicieron en esta entrevista…",
       "save": "Guardar pregunta",
+      "delete": "Eliminar",
       "empty": "Aún no se han registrado preguntas de entrevista.",
       "done": "Listo"
     },

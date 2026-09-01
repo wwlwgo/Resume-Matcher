@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useTranslations } from '@/lib/i18n';
@@ -36,8 +37,11 @@ export function CardDetailModal({
   const [detail, setDetail] = useState<ApplicationDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [notes, setNotes] = useState('');
+  const [interviewAt, setInterviewAt] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesError, setNotesError] = useState<string | null>(null);
+  const [savingInterviewTime, setSavingInterviewTime] = useState(false);
+  const [interviewTimeError, setInterviewTimeError] = useState<string | null>(null);
   const [question, setQuestion] = useState('');
   const [savingQuestion, setSavingQuestion] = useState(false);
   const [questionError, setQuestionError] = useState<string | null>(null);
@@ -54,7 +58,9 @@ export function CardDetailModal({
         if (cancelled) return;
         setDetail(data);
         setNotes(data.notes ?? '');
+        setInterviewAt(toDateTimeLocal(data.interview_at));
         setNotesError(null);
+        setInterviewTimeError(null);
         setQuestion('');
         setQuestionError(null);
       })
@@ -79,7 +85,9 @@ export function CardDetailModal({
     setSavingNotes(true);
     setNotesError(null);
     try {
-      await updateApplication(applicationId, { notes });
+      const updated = await updateApplication(applicationId, { notes });
+      setDetail((current) => (current ? { ...current, ...updated } : current));
+      setNotes(updated.notes ?? '');
       onUpdated();
     } catch {
       // Show a generic message — never echo raw backend error text inline,
@@ -87,6 +95,24 @@ export function CardDetailModal({
       setNotesError(t('common.error'));
     } finally {
       setSavingNotes(false);
+    }
+  };
+
+  const handleSaveInterviewTime = async () => {
+    if (!applicationId || detail?.status !== 'interview') return;
+    setSavingInterviewTime(true);
+    setInterviewTimeError(null);
+    try {
+      const updated = await updateApplication(applicationId, {
+        interview_at: interviewAt ? new Date(interviewAt).toISOString() : null,
+      });
+      setDetail((current) => (current ? { ...current, ...updated } : current));
+      setInterviewAt(toDateTimeLocal(updated.interview_at));
+      onUpdated();
+    } catch {
+      setInterviewTimeError(t('common.error'));
+    } finally {
+      setSavingInterviewTime(false);
     }
   };
 
@@ -108,11 +134,32 @@ export function CardDetailModal({
     }
   };
 
+  const handleDeleteQuestion = async (questionIndex: number) => {
+    if (!applicationId || !detail) return;
+    setSavingQuestion(true);
+    setQuestionError(null);
+    try {
+      const updated = await updateApplication(applicationId, {
+        interview_questions: detail.interview_questions.filter(
+          (_, index) => index !== questionIndex
+        ),
+      });
+      setDetail((current) =>
+        current ? { ...current, interview_questions: updated.interview_questions } : current
+      );
+      onUpdated();
+    } catch {
+      setQuestionError(t('common.error'));
+    } finally {
+      setSavingQuestion(false);
+    }
+  };
+
   const resumeAvailable = Boolean(detail?.resume);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{detail?.company || t('tracker.card.companyUnknown')}</DialogTitle>
           <DialogDescription>{detail?.role || t('tracker.card.roleUnknown')}</DialogDescription>
@@ -137,6 +184,35 @@ export function CardDetailModal({
                 </span>
               )}
             </div>
+
+            {detail.status === 'interview' && (
+              <div className="space-y-1 border-y border-black bg-paper-tint p-3">
+                <Label htmlFor="card-interview-at">{t('tracker.modal.interviewTime')}</Label>
+                <Input
+                  id="card-interview-at"
+                  type="datetime-local"
+                  value={interviewAt}
+                  onChange={(e) => setInterviewAt(e.target.value)}
+                />
+                <div className="flex items-center justify-end gap-3">
+                  {interviewTimeError && (
+                    <span className="font-mono text-xs text-destructive">{interviewTimeError}</span>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleSaveInterviewTime}
+                    disabled={savingInterviewTime}
+                  >
+                    {savingInterviewTime ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      t('tracker.modal.saveChanges')
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-1">
               <Label>{t('tracker.modal.jobDescription')}</Label>
@@ -174,6 +250,27 @@ export function CardDetailModal({
                   )}
                 </Button>
               </div>
+              {detail.interview_questions.length > 0 && (
+                <ul className="space-y-2 border-t border-black pt-3">
+                  {detail.interview_questions.map((recordedQuestion, index) => (
+                    <li
+                      key={`${recordedQuestion}-${index}`}
+                      className="flex items-start justify-between gap-3 border border-black bg-paper-tint p-2"
+                    >
+                      <p className="whitespace-pre-wrap text-sm text-ink">{recordedQuestion}</p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleDeleteQuestion(index)}
+                        disabled={savingQuestion}
+                      >
+                        {t('tracker.interviewQuestions.delete')}
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <div className="space-y-1">
@@ -231,4 +328,14 @@ export function CardDetailModal({
       </DialogContent>
     </Dialog>
   );
+}
+
+function toDateTimeLocal(value: string | null): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (part: number) => String(part).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
+    date.getHours()
+  )}:${pad(date.getMinutes())}`;
 }

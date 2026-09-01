@@ -19,6 +19,7 @@ function application(overrides: Partial<Application> = {}): Application {
     company: 'Acme Corp',
     role: 'Backend Engineer',
     applied_at: null,
+    interview_at: null,
     notes: null,
     interview_questions: ['How do you investigate an outage?'],
     position: 0,

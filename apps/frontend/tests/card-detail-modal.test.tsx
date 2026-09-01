@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CardDetailModal } from '@/components/tracker/card-detail-modal';
 import type { ApplicationDetail } from '@/lib/api/tracker';
 
@@ -32,6 +32,7 @@ const detail: ApplicationDetail = {
   company: 'Acme Corp',
   role: 'Backend Engineer',
   applied_at: null,
+  interview_at: '2026-08-28T14:30:00Z',
   notes: null,
   interview_questions: ['What is your incident response process?'],
   position: 0,
@@ -42,6 +43,10 @@ const detail: ApplicationDetail = {
 };
 
 describe('CardDetailModal', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('appends a non-empty interview question to the application', async () => {
     mocks.getApplicationDetail.mockResolvedValue(detail);
     mocks.updateApplication.mockResolvedValue({
@@ -77,5 +82,69 @@ describe('CardDetailModal', () => {
       });
     });
     expect(onUpdated).toHaveBeenCalledOnce();
+  });
+
+  it('removes a recorded interview question from the application', async () => {
+    const detailWithTwoQuestions = {
+      ...detail,
+      interview_questions: [
+        'What is your incident response process?',
+        'How do you prioritize reliability work?',
+      ],
+    };
+    mocks.getApplicationDetail.mockResolvedValue(detailWithTwoQuestions);
+    mocks.updateApplication.mockResolvedValue({
+      ...detailWithTwoQuestions,
+      interview_questions: ['How do you prioritize reliability work?'],
+    });
+
+    render(
+      <CardDetailModal
+        applicationId={detail.application_id}
+        open
+        onOpenChange={vi.fn()}
+        onUpdated={vi.fn()}
+      />
+    );
+
+    await screen.findByText('What is your incident response process?');
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'tracker.interviewQuestions.delete' })[0]
+    );
+
+    await waitFor(() => {
+      expect(mocks.updateApplication).toHaveBeenCalledWith(detail.application_id, {
+        interview_questions: ['How do you prioritize reliability work?'],
+      });
+    });
+  });
+
+  it('keeps interview time in its own save section above interview questions', async () => {
+    mocks.getApplicationDetail.mockResolvedValue(detail);
+    mocks.updateApplication.mockResolvedValue({ ...detail, interview_at: null });
+
+    render(
+      <CardDetailModal
+        applicationId={detail.application_id}
+        open
+        onOpenChange={vi.fn()}
+        onUpdated={vi.fn()}
+      />
+    );
+
+    const interviewTime = await screen.findByLabelText('tracker.modal.interviewTime');
+    const questionInput = screen.getByLabelText('tracker.interviewQuestions.addLabel');
+    expect(
+      interviewTime.compareDocumentPosition(questionInput) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+
+    fireEvent.change(interviewTime, { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: 'tracker.modal.saveChanges' }));
+
+    await waitFor(() => {
+      expect(mocks.updateApplication).toHaveBeenCalledWith(detail.application_id, {
+        interview_at: null,
+      });
+    });
   });
 });

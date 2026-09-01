@@ -37,7 +37,7 @@ default to `applied` but can be created as `saved`.
 `Application` (SQLite, `apps/backend/app/models.py`): `application_id` (PK),
 `job_id`, `resume_id` (the applied/tailored resume), `master_resume_id`
 (optional base — powers the "shared resume" badge), `status` (7-key enum),
-`company`, `role`, `applied_at`, `notes`, `position` (per-column order,
+`company`, `role`, `applied_at`, `interview_at` (optional ISO-8601 time), `notes`, `position` (per-column order,
 server-renumbered on PATCH), `created_at`, `updated_at`. `create_application`
 dedupes on `(job_id, resume_id)` to survive double-submit.
 
@@ -48,7 +48,7 @@ dedupes on `(job_id, resume_id)` to survive double-submit.
 | GET | `/applications` | All cards grouped by column (all 7 keys present) |
 | POST | `/applications` | Manual add (creates job + card; best-effort extraction) |
 | GET | `/applications/{id}` | Card + embedded JD + resume (resume null if deleted) |
-| PATCH | `/applications/{id}` | Update status/position/notes/company/role/applied_at |
+| PATCH | `/applications/{id}` | Update status/position/notes/company/role/applied_at/interview_at; interview time may only be set while the card is in `interview` |
 | PATCH | `/applications/bulk` | Move many cards to one column |
 | DELETE | `/applications/{id}` | Delete one card |
 | POST | `/applications/bulk-delete` | Delete many cards |

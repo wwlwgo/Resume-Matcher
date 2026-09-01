@@ -59,11 +59,19 @@ describe('tracker API client', () => {
     fetchMock.mockResolvedValue(
       new Response(JSON.stringify({ application_id: 'x' }), { status: 200 })
     );
-    await updateApplication('x', { status: 'rejected', position: 0 });
+    await updateApplication('x', {
+      status: 'interview',
+      position: 0,
+      interview_at: '2026-08-28T14:30:00.000Z',
+    });
     const { url, options } = lastCall();
     expect(url).toContain('/applications/x');
     expect(options.method).toBe('PATCH');
-    expect(JSON.parse(String(options.body))).toEqual({ status: 'rejected', position: 0 });
+    expect(JSON.parse(String(options.body))).toEqual({
+      status: 'interview',
+      position: 0,
+      interview_at: '2026-08-28T14:30:00.000Z',
+    });
   });
 
   it('updateApplication PATCHes recorded interview questions', async () => {

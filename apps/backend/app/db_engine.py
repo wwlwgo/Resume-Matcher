@@ -75,3 +75,7 @@ def init_models_sync(engine: Engine) -> None:
             column["name"] for column in application_columns
         }:
             conn.exec_driver_sql("ALTER TABLE applications ADD COLUMN interview_questions JSON")
+        if application_columns and "interview_at" not in {
+            column["name"] for column in application_columns
+        }:
+            conn.exec_driver_sql("ALTER TABLE applications ADD COLUMN interview_at TEXT")
