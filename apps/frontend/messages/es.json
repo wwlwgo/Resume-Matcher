@@ -1044,6 +1044,16 @@
       "validation": "Elige un currículum y pega una descripción del empleo.",
       "failed": "No se pudo crear la candidatura."
     },
+    "interviewQuestions": {
+      "button": "Preguntas de entrevista",
+      "title": "Preguntas de entrevista registradas",
+      "description": "Cada pregunta se muestra con la candidatura de la que procede.",
+      "addLabel": "Pregunta de entrevista",
+      "addPlaceholder": "Registra una pregunta que hicieron en esta entrevista…",
+      "save": "Guardar pregunta",
+      "empty": "Aún no se han registrado preguntas de entrevista.",
+      "done": "Listo"
+    },
     "errors": {
       "loadFailed": "No se pudieron cargar las candidaturas.",
       "moveFailed": "No se pudo mover la candidatura.",

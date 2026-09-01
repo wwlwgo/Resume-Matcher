@@ -1044,6 +1044,16 @@
       "validation": "请选择一份简历并粘贴职位描述。",
       "failed": "无法创建该申请。"
     },
+    "interviewQuestions": {
+      "button": "面试题",
+      "title": "已记录的面试题",
+      "description": "每道题均按其所属申请记录展示。",
+      "addLabel": "面试题",
+      "addPlaceholder": "记录本次面试中被问到的问题……",
+      "save": "保存题目",
+      "empty": "暂未记录面试题。",
+      "done": "完成"
+    },
     "errors": {
       "loadFailed": "无法加载申请。",
       "moveFailed": "无法移动该申请。",

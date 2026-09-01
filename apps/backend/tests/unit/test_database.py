@@ -94,6 +94,28 @@ class TestResumeCrud:
         finally:
             engine.dispose()
 
+    def test_interview_questions_migration_is_idempotent(self, tmp_path):
+        engine = make_sync_engine(tmp_path / "old_applications.db")
+        try:
+            with engine.begin() as conn:
+                conn.exec_driver_sql(
+                    """
+                    CREATE TABLE applications (
+                        application_id TEXT PRIMARY KEY
+                    )
+                    """
+                )
+
+            init_models_sync(engine)
+            init_models_sync(engine)
+
+            with engine.begin() as conn:
+                columns = conn.exec_driver_sql("PRAGMA table_info(applications)").mappings().all()
+            names = [column["name"] for column in columns]
+            assert names.count("interview_questions") == 1
+        finally:
+            engine.dispose()
+
 
 class TestMasterResume:
     async def test_no_master_initially(self, db):
@@ -213,6 +235,7 @@ class TestApplications:
         assert a["status"] == "applied"
         assert a["position"] == 0
         assert a["applied_at"] is not None  # applied → stamped
+        assert a["interview_questions"] == []
         b = await db.create_application(job_id="j2", resume_id="r2")
         assert b["position"] == 1  # appended to the column
 
@@ -250,6 +273,20 @@ class TestApplications:
         remaining = await db.list_applications(status="rejected")
         assert len(remaining) == 1
         assert remaining[0]["position"] == 0  # renumbered after delete
+
+    async def test_interview_questions_round_trip(self, db):
+        created = await db.create_application(job_id="j1", resume_id="r1")
+        updated = await db.update_application(
+            created["application_id"],
+            {"interview_questions": ["How do you handle an incident?", "Why this role?"]},
+        )
+        assert updated["interview_questions"] == [
+            "How do you handle an incident?",
+            "Why this role?",
+        ]
+        fetched = await db.get_application(created["application_id"])
+        assert fetched is not None
+        assert fetched["interview_questions"] == updated["interview_questions"]
 
 
 class TestApiKeyStore:

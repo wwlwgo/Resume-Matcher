@@ -1044,6 +1044,16 @@
       "validation": "Choisissez un CV et collez une fiche de poste.",
       "failed": "Impossible de créer la candidature."
     },
+    "interviewQuestions": {
+      "button": "Questions d’entretien",
+      "title": "Questions d’entretien enregistrées",
+      "description": "Chaque question est affichée avec la candidature dont elle provient.",
+      "addLabel": "Question d’entretien",
+      "addPlaceholder": "Notez une question posée pendant cet entretien…",
+      "save": "Enregistrer la question",
+      "empty": "Aucune question d’entretien n’a encore été enregistrée.",
+      "done": "Terminé"
+    },
     "errors": {
       "loadFailed": "Impossible de charger les candidatures.",
       "moveFailed": "Impossible de déplacer la candidature.",

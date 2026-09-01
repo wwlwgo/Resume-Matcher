@@ -38,6 +38,9 @@ export function CardDetailModal({
   const [notes, setNotes] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesError, setNotesError] = useState<string | null>(null);
+  const [question, setQuestion] = useState('');
+  const [savingQuestion, setSavingQuestion] = useState(false);
+  const [questionError, setQuestionError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !applicationId) {
@@ -52,6 +55,8 @@ export function CardDetailModal({
         setDetail(data);
         setNotes(data.notes ?? '');
         setNotesError(null);
+        setQuestion('');
+        setQuestionError(null);
       })
       .catch(() => {
         if (!cancelled) setDetail(null);
@@ -82,6 +87,24 @@ export function CardDetailModal({
       setNotesError(t('common.error'));
     } finally {
       setSavingNotes(false);
+    }
+  };
+
+  const handleSaveQuestion = async () => {
+    if (!applicationId || !detail || !question.trim()) return;
+    setSavingQuestion(true);
+    setQuestionError(null);
+    try {
+      const updated = await updateApplication(applicationId, {
+        interview_questions: [...detail.interview_questions, question.trim()],
+      });
+      setDetail({ ...detail, interview_questions: updated.interview_questions });
+      setQuestion('');
+      onUpdated();
+    } catch {
+      setQuestionError(t('common.error'));
+    } finally {
+      setSavingQuestion(false);
     }
   };
 
@@ -119,6 +142,37 @@ export function CardDetailModal({
               <Label>{t('tracker.modal.jobDescription')}</Label>
               <div className="max-h-48 overflow-y-auto whitespace-pre-wrap border border-black bg-background p-3 text-sm">
                 {detail.job_content || t('tracker.modal.noJobDescription')}
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor="card-interview-question">
+                {t('tracker.interviewQuestions.addLabel')}
+              </Label>
+              <Textarea
+                id="card-interview-question"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                onKeyDown={handleNotesKeyDown}
+                placeholder={t('tracker.interviewQuestions.addPlaceholder')}
+                rows={3}
+              />
+              <div className="flex items-center justify-end gap-3">
+                {questionError && (
+                  <span className="font-mono text-xs text-destructive">{questionError}</span>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleSaveQuestion}
+                  disabled={savingQuestion || !question.trim()}
+                >
+                  {savingQuestion ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    t('tracker.interviewQuestions.save')
+                  )}
+                </Button>
               </div>
             </div>
 

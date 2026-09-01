@@ -1044,6 +1044,16 @@
       "validation": "Pick a resume and paste a job description.",
       "failed": "Could not create the application."
     },
+    "interviewQuestions": {
+      "button": "Interview Questions",
+      "title": "Recorded Interview Questions",
+      "description": "Questions are grouped with the application they came from.",
+      "addLabel": "Interview question",
+      "addPlaceholder": "Record a question asked in this interview…",
+      "save": "Save question",
+      "empty": "No interview questions have been recorded yet.",
+      "done": "Done"
+    },
     "errors": {
       "loadFailed": "Could not load applications.",
       "moveFailed": "Could not move the application.",

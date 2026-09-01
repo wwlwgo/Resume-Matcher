@@ -1044,6 +1044,16 @@
       "validation": "이력서를 선택하고 채용 공고를 붙여넣으세요.",
       "failed": "지원 항목을 생성할 수 없습니다."
     },
+    "interviewQuestions": {
+      "button": "면접 질문",
+      "title": "기록된 면접 질문",
+      "description": "각 질문은 해당 지원 기록과 함께 표시됩니다.",
+      "addLabel": "면접 질문",
+      "addPlaceholder": "이 면접에서 받은 질문을 기록하세요…",
+      "save": "질문 저장",
+      "empty": "아직 기록된 면접 질문이 없습니다.",
+      "done": "완료"
+    },
     "errors": {
       "loadFailed": "지원 내역을 불러올 수 없습니다.",
       "moveFailed": "지원 항목을 이동할 수 없습니다.",

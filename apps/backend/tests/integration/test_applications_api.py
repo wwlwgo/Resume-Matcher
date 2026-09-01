@@ -141,6 +141,20 @@ class TestUpdateAndMove:
         assert body["notes"] == "Recruiter call Friday"
         assert body["company"] == "NewCo"
 
+    async def test_patch_interview_questions(self, isolated_db):
+        card = await _seed_card(isolated_db, company="NewCo", role="Engineer")
+        questions = ["How do you approach a production incident?", "Why this role?"]
+        async with _client() as client:
+            resp = await client.patch(
+                f"/api/v1/applications/{card['application_id']}",
+                json={"interview_questions": questions},
+            )
+            detail = await client.get(f"/api/v1/applications/{card['application_id']}")
+        assert resp.status_code == 200
+        assert resp.json()["interview_questions"] == questions
+        assert detail.status_code == 200
+        assert detail.json()["interview_questions"] == questions
+
     async def test_patch_unknown_returns_404(self, isolated_db):
         async with _client() as client:
             resp = await client.patch("/api/v1/applications/nope", json={"notes": "x"})

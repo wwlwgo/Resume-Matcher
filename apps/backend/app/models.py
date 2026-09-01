@@ -117,6 +117,10 @@ class Application(Base):
     role: Mapped[str | None] = mapped_column(String, nullable=True)
     applied_at: Mapped[str | None] = mapped_column(String, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # User-recorded questions asked during this application's interview process.
+    # These intentionally belong to the application rather than a separate
+    # interview entity: the tracker is their only source of context.
+    interview_questions: Mapped[list[str]] = mapped_column(JSON, default=list)
     position: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[str] = mapped_column(String, default=_utcnow_iso)
     updated_at: Mapped[str] = mapped_column(String, default=_utcnow_iso)
