@@ -74,6 +74,19 @@ describe('tracker API client', () => {
     });
   });
 
+  it('updateApplication PATCHes recorded interview questions', async () => {
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ application_id: 'x', interview_questions: ['Question'] }), {
+        status: 200,
+      })
+    );
+    await updateApplication('x', { interview_questions: ['Question'] });
+    const { url, options } = lastCall();
+    expect(url).toContain('/applications/x');
+    expect(options.method).toBe('PATCH');
+    expect(JSON.parse(String(options.body))).toEqual({ interview_questions: ['Question'] });
+  });
+
   it('createApplication POSTs the manual-add payload', async () => {
     fetchMock.mockResolvedValue(
       new Response(JSON.stringify({ application_id: 'x' }), { status: 200 })

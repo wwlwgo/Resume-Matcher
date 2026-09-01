@@ -16,6 +16,7 @@ import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import ChevronLeft from 'lucide-react/dist/esm/icons/chevron-left';
 import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
 import Settings2 from 'lucide-react/dist/esm/icons/settings-2';
+import ClipboardList from 'lucide-react/dist/esm/icons/clipboard-list';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from '@/lib/i18n';
 import {
@@ -33,6 +34,7 @@ import { BulkActionBar } from './bulk-action-bar';
 import { CardDetailModal } from './card-detail-modal';
 import { ManualAddApplicationDialog } from './manual-add-application-dialog';
 import { TrackerColumnManagerDialog } from './tracker-column-manager-dialog';
+import { InterviewQuestionsDialog } from './interview-questions-dialog';
 import { planMove } from './reorder';
 import {
   loadVisibleTrackerStatuses,
@@ -60,6 +62,7 @@ export function KanbanBoard() {
   const [openCardId, setOpenCardId] = useState<string | null>(null);
   const [manualAddOpen, setManualAddOpen] = useState(false);
   const [managerOpen, setManagerOpen] = useState(false);
+  const [interviewQuestionsOpen, setInterviewQuestionsOpen] = useState(false);
   const [visibleStatuses, setVisibleStatuses] =
     useState<ApplicationStatus[]>(APPLICATION_STATUS_ORDER);
 
@@ -227,6 +230,10 @@ export function KanbanBoard() {
             <Settings2 className="h-4 w-4" />
             {t('tracker.manage.button')}
           </Button>
+          <Button variant="outline" onClick={() => setInterviewQuestionsOpen(true)}>
+            <ClipboardList className="h-4 w-4" />
+            {t('tracker.interviewQuestions.button')}
+          </Button>
           {showScrollControls && (
             <div className="flex items-center">
               <button
@@ -368,6 +375,12 @@ export function KanbanBoard() {
         onOpenChange={setManagerOpen}
         visibleStatuses={visibleStatuses}
         onVisibilityChange={handleVisibilityChange}
+      />
+
+      <InterviewQuestionsDialog
+        open={interviewQuestionsOpen}
+        onOpenChange={setInterviewQuestionsOpen}
+        applications={allCards}
       />
     </div>
   );

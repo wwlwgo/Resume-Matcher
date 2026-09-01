@@ -173,6 +173,9 @@ class Database:
             "applied_at": row.applied_at,
             "interview_at": row.interview_at,
             "notes": row.notes,
+            # Older databases get this column through the additive migration;
+            # tolerate a legacy NULL as an empty question list.
+            "interview_questions": list(row.interview_questions or []),
             "position": row.position,
             "created_at": row.created_at,
             "updated_at": row.updated_at,
@@ -503,6 +506,7 @@ class Database:
         applied_at: str | None = None,
         interview_at: str | None = None,
         notes: str | None = None,
+        interview_questions: list[str] | None = None,
     ) -> dict[str, Any]:
         """Create a tracker card, deduped on (job_id, resume_id).
 
@@ -537,6 +541,7 @@ class Database:
                 applied_at=applied_at,
                 interview_at=interview_at,
                 notes=notes,
+                interview_questions=list(interview_questions or []),
                 position=position,
                 created_at=now,
                 updated_at=now,
@@ -602,7 +607,14 @@ class Database:
             if "interview_at" in updates and new_status != "interview":
                 raise ValueError("Interview time can only be set for interview applications")
 
-            for key in ("company", "role", "applied_at", "interview_at", "notes"):
+            for key in (
+                "company",
+                "role",
+                "applied_at",
+                "interview_at",
+                "notes",
+                "interview_questions",
+            ):
                 if key in updates:
                     setattr(row, key, updates[key])
 

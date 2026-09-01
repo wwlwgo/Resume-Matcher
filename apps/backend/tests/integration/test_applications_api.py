@@ -141,6 +141,26 @@ class TestUpdateAndMove:
         assert body["notes"] == "Recruiter call Friday"
         assert body["company"] == "NewCo"
 
+    async def test_patch_interview_questions(self, isolated_db):
+        card = await _seed_card(isolated_db, company="NewCo", role="Engineer")
+        questions = ["How do you approach a production incident?", "Why this role?"]
+        async with _client() as client:
+            resp = await client.patch(
+                f"/api/v1/applications/{card['application_id']}",
+                json={"interview_questions": questions},
+            )
+            removed = await client.patch(
+                f"/api/v1/applications/{card['application_id']}",
+                json={"interview_questions": [questions[1]]},
+            )
+            detail = await client.get(f"/api/v1/applications/{card['application_id']}")
+        assert resp.status_code == 200
+        assert resp.json()["interview_questions"] == questions
+        assert removed.status_code == 200
+        assert removed.json()["interview_questions"] == [questions[1]]
+        assert detail.status_code == 200
+        assert detail.json()["interview_questions"] == [questions[1]]
+
     async def test_patch_interview_time_persists_in_list_and_detail(self, isolated_db):
         card = await _seed_card(isolated_db, status="interview")
         interview_at = "2026-08-28T14:30:00+00:00"

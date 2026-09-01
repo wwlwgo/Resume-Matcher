@@ -25,6 +25,7 @@ export interface Application {
   applied_at: string | null;
   interview_at: string | null;
   notes: string | null;
+  interview_questions: string[];
   position: number;
   created_at: string;
   updated_at: string;
@@ -58,6 +59,7 @@ export interface ApplicationUpdate {
   company?: string;
   role?: string;
   applied_at?: string;
+  interview_questions?: string[];
   interview_at?: string | null;
 }
 
@@ -119,7 +121,7 @@ export async function getApplicationDetail(id: string): Promise<ApplicationDetai
   return asJson<ApplicationDetail>(res, 'Failed to load application');
 }
 
-// Update one card (status/position/notes/company/role/applied_at/interview_at).
+// Update one card (status, details, interview time, and interview questions).
 export async function updateApplication(
   id: string,
   payload: ApplicationUpdate

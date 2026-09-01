@@ -134,7 +134,7 @@ async def bulk_update_applications(request: BulkStatusUpdate) -> ApplicationActi
 
 @router.patch("/{application_id}", response_model=ApplicationResponse)
 async def update_application(application_id: str, request: ApplicationUpdate) -> ApplicationResponse:
-    """Update a card (status/position/notes/company/role/applied_at/interview_at)."""
+    """Update a card, including interview time and recorded questions."""
     # JSON mode turns Pydantic datetimes into the ISO strings stored in SQLite.
     updates = request.model_dump(exclude_unset=True, mode="json")
     # Normalize the enum to its stable string value for the data layer.
